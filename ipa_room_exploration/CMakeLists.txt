@@ -97,7 +97,6 @@ INCLUDE_DIRS
 	ros/include
 LIBRARIES
 	${PROJECT_NAME}
-	libcoverage_check_server
 CATKIN_DEPENDS
 	${catkin_RUN_PACKAGES}
 DEPENDS
@@ -136,12 +135,7 @@ include_directories(
 
 ### package library
 add_library(${PROJECT_NAME} STATIC
-	common/src/grid_point_explorator.cpp
 	common/src/boustrophedon_explorator.cpp
-	common/src/neural_network_explorator.cpp
-	common/src/convex_sensor_placement_explorator.cpp
-	common/src/energy_functional_explorator.cpp
-	common/src/flow_network_explorator.cpp
 	common/src/room_rotator.cpp
 	common/src/meanshift2d.cpp
 )
@@ -156,7 +150,6 @@ target_link_libraries(${PROJECT_NAME}
 	${Cgl_LIBRARIES}
 	${Cbc-lib_LIBRARIES}
 	${GUROBI_LIBRARIES}
-	libcoverage_check_server
 )
 add_dependencies(${PROJECT_NAME}
 	${catkin_EXPORTED_TARGETS}
@@ -173,47 +166,14 @@ target_link_libraries(room_exploration_server
 	${OpenCV_LIBS}
 	${Boost_LIBRARIES}
 	${PROJECT_NAME}
-	libcoverage_check_server
 )
 add_dependencies(room_exploration_server
 	${catkin_EXPORTED_TARGETS}
 	${${PROJECT_NAME}_EXPORTED_TARGETS}
 )
 
-### library for coverage checking
-add_library(libcoverage_check_server
-	ros/src/coverage_check_server.cpp
-)
-target_link_libraries(libcoverage_check_server
-	${catkin_LIBRARIES} 
-	${OpenCV_LIBS}
-	${Boost_LIBRARIES}
-)
-add_dependencies(libcoverage_check_server ${catkin_EXPORTED_TARGETS})
 
-### server for coverage checking
-add_executable(coverage_check_server
-	ros/src/coverage_check_server_main.cpp
-)
-target_link_libraries(coverage_check_server
-	${catkin_LIBRARIES} 
-	${OpenCV_LIBS}
-	${Boost_LIBRARIES}
-	libcoverage_check_server
-)
-add_dependencies(coverage_check_server ${catkin_EXPORTED_TARGETS})
 
-### server for coverage monitoring
-add_executable(coverage_monitor_server
-	ros/src/coverage_monitor_server.cpp
-)
-target_link_libraries(coverage_monitor_server
-	${catkin_LIBRARIES} 
-	${OpenCV_LIBS}
-	${Boost_LIBRARIES}
-	libcoverage_check_server
-)
-add_dependencies(coverage_monitor_server ${catkin_EXPORTED_TARGETS})
 
 ### room exploration client
 add_executable(room_exploration_client
@@ -225,21 +185,6 @@ target_link_libraries(room_exploration_client
 	${Boost_LIBRARIES}
 )
 add_dependencies(room_exploration_client 
-	${catkin_EXPORTED_TARGETS}
-	${${PROJECT_NAME}_EXPORTED_TARGETS}
-)
-
-### evaluation of room exploration algorithms
-add_executable(room_exploration_evaluation
-	ros/src/room_exploration_evaluation.cpp
-	ros/src/fov_to_robot_mapper.cpp
-)
-target_link_libraries(room_exploration_evaluation
-	${catkin_LIBRARIES} 
-	${OpenCV_LIBS}
-	libcoverage_check_server
-)
-add_dependencies(room_exploration_evaluation 
 	${catkin_EXPORTED_TARGETS}
 	${${PROJECT_NAME}_EXPORTED_TARGETS}
 )
