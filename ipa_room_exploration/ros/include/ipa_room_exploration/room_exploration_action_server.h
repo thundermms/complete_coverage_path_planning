@@ -98,16 +98,9 @@
 // specific from this package
 #include <ipa_building_navigation/concorde_TSP.h>
 #include <ipa_room_exploration/RoomExplorationConfig.h>
-#include <ipa_room_exploration/grid_point_explorator.h>
 #include <ipa_room_exploration/boustrophedon_explorator.h>
-#include <ipa_room_exploration/neural_network_explorator.h>
-#include <ipa_room_exploration/convex_sensor_placement_explorator.h>
-#include <ipa_room_exploration/flow_network_explorator.h>
 #include <ipa_room_exploration/fov_to_robot_mapper.h>
-#include <ipa_room_exploration/energy_functional_explorator.h>
-#include <ipa_room_exploration/voronoi.hpp>
 #include <ipa_room_exploration/room_rotator.h>
-#include <ipa_room_exploration/coverage_check_server.h>
 
 
 #define PI 3.14159265359
@@ -122,14 +115,8 @@ protected:
 
 	ros::Publisher path_pub_; // a publisher sending the path as a nav_msgs::Path before executing
 
-	GridPointExplorator grid_point_planner; // object that uses the grid point method to plan a path trough a room
 	BoustrophedonExplorer boustrophedon_explorer_; // object that uses the boustrophedon exploration method to plan a path trough the room
-	NeuralNetworkExplorator neural_network_explorator_; // object that uses the neural network method to create an exploration path
-	convexSPPExplorator convex_SPP_explorator_; // object that uses the convex spp exploration methd to create an exploration path
-	FlowNetworkExplorator flow_network_explorator_; // object that uses the flow network exploration method to create an exploration path
-	EnergyFunctionalExplorator energy_functional_explorator_; // object that uses the energy functional exploration method to create an exploration path
-	BoustrophedonVariantExplorer boustrophedon_variant_explorer_; // object that uses the boustrophedon variant exploration method to plan a path trough the room
-
+	
 	// parameters
 	int room_exploration_algorithm_;	// variable to specify which algorithm is going to be used to plan a path
 										// 1: grid point explorator
@@ -183,23 +170,6 @@ protected:
 									//   2 = alternative ordering from left to right (measured on y-coordinates of the cells), visits the cells in a more obvious fashion to the human observer (though it is not optimal)
 
 
-	// parameters specific for the neural network explorator, see "A Neural Network Approach to Complete Coverage Path Planning" from Simon X. Yang and Chaomin Luo
-	double step_size_; // step size for integrating the state dynamics
-	int A_; // decaying parameter that pulls the activity of a neuron closer to zero, larger value means faster decreasing
-	int B_; // increasing parameter that tries to increase the activity of a neuron when it's not too big already, higher value means a higher desired value and a faster increasing at the beginning
-	int D_; // decreasing parameter when the neuron is labeled as obstacle, higher value means faster decreasing
-	int E_; // external input parameter of one neuron that is used in the dynamics corresponding to if it is an obstacle or uncleaned/cleaned, E>>B
-	double mu_; // parameter to set the importance of the states of neighboring neurons to the dynamics, higher value means higher influence
-	double delta_theta_weight_; // parameter to set the importance of the traveleing direction from the previous step and the next step, a higher value means that the robot should turn less
-
-	// parameters specific for the convexSPP explorator
-	int cell_size_;				// size of one cell that is used to discretize the free space
-	double delta_theta_;			// sampling angle when creating possible sensing poses in the convexSPP explorator
-
-	// parameters specific for the flowNetwork explorator
-	double curvature_factor_; // double that shows the factor, an arc can be longer than a straight arc when using the flowNetwork explorator
-	double max_distance_factor_; // double that shows how much an arc can be longer than the maximal distance of the room, which is determined by the min/max coordinates that are set in the goal
-
 
 	// callback function for dynamic reconfigure
 	void dynamic_reconfigure_callback(ipa_room_exploration::RoomExplorationConfig &config, uint32_t level);
@@ -214,19 +184,6 @@ protected:
 	// min_dist_squared is the squared minimum distance between two points on the trajectory, in [pixel] (i.e. grid cells)
 	void downsampleTrajectory(const std::vector<geometry_msgs::Pose2D>& path_uncleaned, std::vector<geometry_msgs::Pose2D>& path, const double min_dist_squared);
 
-
-	// excute the planned trajectory and drive to unexplored areas after moving along the computed path
-	void navigateExplorationPath(const std::vector<geometry_msgs::Pose2D>& exploration_path, const std::vector<geometry_msgs::Point32>& field_of_view,
-			const geometry_msgs::Point32& field_of_view_origin, const double coverage_radius, const double distance_robot_fov_middlepoint,
-			const float map_resolution, const geometry_msgs::Pose& map_origin, const double grid_spacing_in_pixel, const double map_height);
-
-	// function to publish a navigation goal, it returns true if the goal could be reached
-	// eps_x and eps_y are used to define a epsilon neighborhood around the goal in which a new nav_goal gets published
-	// 	--> may smooth the process, move_base often slows before and stops at the goal
-	bool publishNavigationGoal(const geometry_msgs::Pose2D& nav_goal, const std::string map_frame,
-			const std::string camera_frame, std::vector<geometry_msgs::Pose2D>& robot_poses,
-			const double robot_to_fov_middlepoint_distance, const double eps = 0.0,
-			const bool perimeter_check = false);
 
 	// converter-> Pixel to meter for X coordinate
 	double convertPixelToMeterForXCoordinate(const int pixel_valued_object_x, const float map_resolution, const cv::Point2d map_origin)
