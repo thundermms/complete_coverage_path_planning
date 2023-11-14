@@ -85,7 +85,6 @@ double RoomRotator::computeRoomRotationMatrix(const cv::Mat& room_map, cv::Mat& 
 {
 	// rotation angle of the map s.t. the most occurring gradient is in 90 degree to the x-axis
 	double rotation_angle = computeRoomMainDirection(room_map, map_resolution) + rotation_offset;
-	std::cout << "RoomRotator::computeRoomRotationMatrix: main rotation angle: " << rotation_angle << std::endl;
 
 	// get rotation matrix R for rotating the image around the center of the room contour
 	//	Remark: rotation angle in degrees for opencv
