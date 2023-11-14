@@ -107,42 +107,7 @@ add_dependencies(${PROJECT_NAME}
 	${${PROJECT_NAME}_EXPORTED_TARGETS}
 )
 
-# action provider
-add_executable(room_sequence_planning_server
-	ros/src/room_sequence_planning_action_server.cpp
-	)
-target_link_libraries(room_sequence_planning_server
-	tsp_solvers
-	${PROJECT_NAME}
-	${catkin_LIBRARIES}
-	${OpenCV_LIBRARIES}
-	${Boost_LIBRARIES}
-)
-add_dependencies(room_sequence_planning_server
-	${catkin_EXPORTED_TARGETS}
-	${${PROJECT_NAME}_EXPORTED_TARGETS}
-	${PROJECT_NAME}_gencfg
-)
 
-# client for testing purpose
-add_executable(room_sequence_planning_client ros/src/room_sequence_planning_action_client.cpp)
-target_link_libraries(room_sequence_planning_client
-	${catkin_LIBRARIES} 
-	${OpenCV_LIBRARIES}
-)
-add_dependencies(room_sequence_planning_client ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-
-# client for testing purpose
-add_executable(room_sequence_planning_evaluation 
-	ros/src/room_sequence_planning_evaluation.cpp
-	common/src/A_star_pathplanner.cpp
-	common/src/node.cpp
-)
-target_link_libraries(room_sequence_planning_evaluation
-	${catkin_LIBRARIES}
-	${OpenCV_LIBRARIES}
-)
-add_dependencies(room_sequence_planning_evaluation ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 # evaluation
 add_executable(TSP_evaluation
@@ -165,7 +130,7 @@ add_dependencies(TSP_evaluation ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXP
 ## Install ##
 #############
 # Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME} tsp_solvers room_sequence_planning_server room_sequence_planning_client #a_star_tester tester
+install(TARGETS ${PROJECT_NAME} tsp_solvers  #a_star_tester tester
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
