@@ -321,7 +321,7 @@ void RoomExplorationServer::exploreRoom(const ipa_building_msgs::RoomExploration
 //			cv::imshow("cell path", fov_path_map);
 //			cv::waitKey();
 		}
-		cv::imshow("cell path", fov_path_map);
+		// cv::imshow("cell path", fov_path_map);
 		cv::waitKey();
 	}
 	
