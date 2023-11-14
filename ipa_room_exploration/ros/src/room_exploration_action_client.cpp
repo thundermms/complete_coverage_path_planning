@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	priv_nh.param("robot_radius", robot_radius, 0.3);
 	double coverage_radius;
 	priv_nh.param("coverage_radius", coverage_radius, 1.0);
-	std::vector<double> start_pos = {0, 0, 0};
+	std::vector<double> start_pos = {1, 1, 0};
 	priv_nh.param("starting_position", start_pos, start_pos);
 
 	if (start_pos.size() != 3)
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	ROS_INFO("Action server started, sending goal.");
 
 	DynamicReconfigureClient drc_exp(nh, "room_exploration_server/set_parameters", "room_exploration_server/parameter_updates");
-	// drc_exp.setConfig("room_exploration_algorithm", 8);
+	// drc_exp.setConfig("room_exploration_algorithm", 1);
 	// drc_exp.setConfig("execute_path", false);
 //	drc_exp.setConfig("path_eps", 3);
 //	drc_exp.setConfig("grid_line_length", 15);
@@ -155,15 +155,15 @@ int main(int argc, char **argv)
 	starting_position.theta = start_pos[2];
 
 	std::vector<geometry_msgs::Point32> fov_points(4);
-	fov_points[0].x = 0.04035;		// this field of view represents the off-center iMop floor wiping device
-	fov_points[0].y = -0.136;
-	fov_points[1].x = 0.04035;
-	fov_points[1].y = 0.364;
-	fov_points[2].x = 0.54035;		// todo: this definition is mirrored on x (y-coordinates are inverted) to work properly --> check why, make it work the intuitive way
-	fov_points[2].y = 0.364;
-	fov_points[3].x = 0.54035;
-	fov_points[3].y = -0.136;
-	int planning_mode = 2;	// viewpoint planning
+	// fov_points[0].x = 0.04035;		// this field of view represents the off-center iMop floor wiping device
+	// fov_points[0].y = -0.136;
+	// fov_points[1].x = 0.04035;
+	// fov_points[1].y = 0.364;
+	// fov_points[2].x = 0.54035;		// todo: this definition is mirrored on x (y-coordinates are inverted) to work properly --> check why, make it work the intuitive way
+	// fov_points[2].y = 0.364;
+	// fov_points[3].x = 0.54035;
+	// fov_points[3].y = -0.136;
+	// int planning_mode = 2;	// viewpoint planning
 //	fov_points[0].x = 0.15;		// this field of view fits a Asus Xtion sensor mounted at 0.63m height (camera center) pointing downwards to the ground in a respective angle
 //	fov_points[0].y = 0.35;
 //	fov_points[1].x = 0.15;
@@ -173,14 +173,15 @@ int main(int argc, char **argv)
 //	fov_points[3].x = 1.15;
 //	fov_points[3].y = 0.65;
 //	int planning_mode = 2;	// viewpoint planning
-//	fov_points[0].x = -0.3;		// this is the working area of a vacuum cleaner with 60 cm width
-//	fov_points[0].y = 0.3;
-//	fov_points[1].x = -0.3;
-//	fov_points[1].y = -0.3;
-//	fov_points[2].x = 0.3;
-//	fov_points[2].y = -0.3;
-//	fov_points[3].x = 0.3;
-//	fov_points[3].y = 0.3;
+	// fov_points[0].x = -0.5;		// this is the working area of a vacuum cleaner with 60 cm width
+	// fov_points[0].y = 0.5;
+	// fov_points[1].x = -0.5;
+	// fov_points[1].y = -0.5;
+	// fov_points[2].x = 0.5;
+	// fov_points[2].y = -0.5;
+	// fov_points[3].x = 0.5;
+	// fov_points[3].y = 0.5;
+	int planning_mode = 1;
 //	int planning_mode = 1;	// footprint planning
 	geometry_msgs::Point32 fov_origin;
 	fov_origin.x = 0.;
