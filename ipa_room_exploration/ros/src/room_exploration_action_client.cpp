@@ -105,8 +105,8 @@ int main(int argc, char **argv)
 	ROS_INFO("Action server started, sending goal.");
 
 	DynamicReconfigureClient drc_exp(nh, "room_exploration_server/set_parameters", "room_exploration_server/parameter_updates");
-	drc_exp.setConfig("path_eps", 1.0);
-	drc_exp.setConfig("map_correction_closing_neighborhood_size", 2);
+	drc_exp.setConfig("path_eps", 200.0);
+	drc_exp.setConfig("map_correction_closing_neighborhood_size", 4);
 
 	sensor_msgs::Image labeling;
 	cv_bridge::CvImage cv_image;
