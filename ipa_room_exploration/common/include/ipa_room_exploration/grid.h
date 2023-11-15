@@ -252,16 +252,16 @@ public:
 	// map_inflation_radius = the number of pixels obstacles shall be inflated if no precomputed inflated_room_map is provided (map_inflation_radius can be -1 otherwise), in [pixels]
 	// grid_points = a vector of BoustrophedonLine objects, each of them containing line information in upper_line and optionally another line in lower_line if two_valid_lines is true, in [pixels]
 	// min_max_map_coordinates = optionally precomputed min/max coordinates (min_x, max_x, min_y, max_y) of the free space in inflated_room_map, if cv::Vec4i(-1,-1,-1,-1) is provided, min/max map coordinates are computed by this function, in [pixels]
-	// grid_spacing = the basic distance between two grid cell centers, is used for vertical grid spacing, in [pixels]
-	// half_grid_spacing = the rounded half distance between two grid cell centers (the user shall define how it is rounded), in [pixels]
-	// grid_spacing_horizontal = this value allows to specify the horizontal basic distance between two grid cell centers, it can be set to grid_spacing if the basic horizontal spacing shall be identical to the vertical spacing, in [pixels]
+	// tool_size = the basic distance between two grid cell centers, is used for vertical grid spacing, in [pixels]
+	// half_tool_size = the rounded half distance between two grid cell centers (the user shall define how it is rounded), in [pixels]
+	// tool_size_horizontal = this value allows to specify the horizontal basic distance between two grid cell centers, it can be set to grid_spacing if the basic horizontal spacing shall be identical to the vertical spacing, in [pixels]
 	// max_deviation_from_track = maximal allowed shift off the track to both sides for avoiding obstacles on track, setting max_deviation_from_track=grid_spacing is usually a good choice, for negative values max_deviation_from_track is set to grid_spacing, in [pixels]
 	static void generateBoustrophedonGrid(const cv::Mat& room_map, cv::Mat& inflated_room_map, const int map_inflation_radius,
-			BoustrophedonGrid& grid_points, const cv::Vec4i& min_max_map_coordinates, const int grid_spacing, const int half_grid_spacing,
-			const int grid_spacing_horizontal, int max_deviation_from_track = -1)
+			BoustrophedonGrid& grid_points, const cv::Vec4i& min_max_map_coordinates, const int tool_size, const int half_tool_size,
+			const int tool_size_horizontal, int max_deviation_from_track = -1)
 	{
 		if (max_deviation_from_track < 0)
-			max_deviation_from_track = grid_spacing;
+			max_deviation_from_track = tool_size;
 
 		// compute inflated_room_map if not provided
 		if (inflated_room_map.rows!=room_map.rows || inflated_room_map.cols!=room_map.cols)
@@ -301,11 +301,11 @@ public:
 			return;
 
 		// create grid
-		const int squared_grid_spacing_horizontal = grid_spacing_horizontal*grid_spacing_horizontal;
-		//std::cout << "((max_y - min_y) <= grid_spacing): min_y=" << min_y << "   max_y=" << max_y << "   grid_spacing=" << grid_spacing << std::endl;
+		const int squared_tool_size_horizontal = tool_size_horizontal*tool_size_horizontal;
+		//std::cout << "((max_y - min_y) <= tool_size): min_y=" << min_y << "   max_y=" << max_y << "   tool_size=" << tool_size << std::endl;
 		int y=min_y;
 		// loop through the vertical grid lines with regular grid spacing
-		for (; y<=max_y+half_grid_spacing; y += grid_spacing)		// we use max_y+half_grid_spacing as upper bound to cover the bottom-most line as well
+		for (; y<=max_y+half_tool_size; y += tool_size)		// we use max_y+half_tool_sizeas upper bound to cover the bottom-most line as well
 		{
 			if (y > max_y)	// this should happen at most once for the bottom line
 				y = max_y;
@@ -328,7 +328,7 @@ public:
 				// 1. check accessibility on regular location
 				if (inflated_room_map.at<uchar>(y,x)==255)
 				{
-					if (squaredPointDistance(last_added_grid_point_above,cv::Point(x,y))>=squared_grid_spacing_horizontal)
+					if (squaredPointDistance(last_added_grid_point_above,cv::Point(x,y))>=squared_tool_size_horizontal)
 					{
 						line.upper_line.push_back(cv::Point(x,y));
 						line.lower_line.push_back(invalid_point);
@@ -353,7 +353,7 @@ public:
 					}
 					if (found_above == true)
 					{
-						if (squaredPointDistance(last_added_grid_point_above,cv::Point(x,y+dy))>=squared_grid_spacing_horizontal)
+						if (squaredPointDistance(last_added_grid_point_above,cv::Point(x,y+dy))>=squared_tool_size_horizontal)
 						{
 							line.upper_line.push_back(cv::Point(x,y+dy));
 							line.lower_line.push_back(invalid_point);		// can be overwritten below if this point also exists
@@ -376,7 +376,7 @@ public:
 					}
 					if (found_below == true)
 					{
-						if (squaredPointDistance(last_added_grid_point_below,cv::Point(x,y+dy))>=squared_grid_spacing_horizontal)
+						if (squaredPointDistance(last_added_grid_point_below,cv::Point(x,y+dy))>=squared_tool_size_horizontal)
 						{
 							if (found_above == true)	// update the existing entry
 							{

@@ -1,12 +1,6 @@
 # this variable selects the algorithm for room exploration
-# 1 = grid point explorator
 # 2 = boustrophedon explorator
-# 3 = neural network explorator
-# 4 = convexSPP explorator
-# 5 = flowNetwork explorator
-# 6 = energyFunctional explorator
-# 7 = voronoi explorator
-# 8 = boustrophedon variant explorator
+
 # int
 room_exploration_algorithm: 2
 

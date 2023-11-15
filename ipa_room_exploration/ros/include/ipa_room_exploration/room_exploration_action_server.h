@@ -161,6 +161,7 @@ protected:
 	// parameters specific for the boustrophedon explorator
 	double min_cell_area_;			// minimal area a cell can have, when using the boustrophedon explorator
 	double path_eps_;		// the distance between points when generating a path
+	double tool_size_;		// size of the tool in diameters [pixel](will not be considered for obstacle avoidance)
 	double grid_obstacle_offset_;	// in [m], the additional offset of the grid to obstacles, i.e. allows to displace the grid by more than the standard half_grid_size from obstacles
 	int max_deviation_from_track_;	// in [pixel], maximal allowed shift off the ideal boustrophedon track to both sides for avoiding obstacles on track
 									// setting max_deviation_from_track=grid_spacing is usually a good choice

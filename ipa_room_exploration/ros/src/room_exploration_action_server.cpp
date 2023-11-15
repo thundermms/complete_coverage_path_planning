@@ -111,6 +111,8 @@ RoomExplorationServer::RoomExplorationServer(ros::NodeHandle nh, std::string nam
 		std::cout << "room_exploration/min_cell_area_ = " << min_cell_area_ << std::endl;
 		node_handle_.param("path_eps", path_eps_, 2.0);
 		std::cout << "room_exploration/path_eps_ = " << path_eps_ << std::endl;
+		node_handle_.param("tool_size", tool_size_, 30.0);
+		std::cout << "room_exploration/tool_size_ = " << tool_size_ << std::endl;
 		node_handle_.param("grid_obstacle_offset", grid_obstacle_offset_, 0.0);
 		std::cout << "room_exploration/grid_obstacle_offset_ = " << grid_obstacle_offset_ << std::endl;
 		node_handle_.param("max_deviation_from_track", max_deviation_from_track_, -1);
@@ -172,16 +174,18 @@ void RoomExplorationServer::dynamic_reconfigure_callback(ipa_room_exploration::R
 	std::cout << "room_exploration/camera_frame_ = " << camera_frame_ << std::endl;
 
 
-		min_cell_area_ = config.min_cell_area;
-		std::cout << "room_exploration/min_cell_area_ = " << min_cell_area_ << std::endl;
-		path_eps_ = config.path_eps;
-		std::cout << "room_exploration/path_eps_ = " << path_eps_ << std::endl;
-		grid_obstacle_offset_ = config.grid_obstacle_offset;
-		std::cout << "room_exploration/grid_obstacle_offset_ = " << grid_obstacle_offset_ << std::endl;
-		max_deviation_from_track_ = config.max_deviation_from_track;
-		std::cout << "room_exploration/max_deviation_from_track_ = " << max_deviation_from_track_ << std::endl;
-		cell_visiting_order_ = config.cell_visiting_order;
-		std::cout << "room_exploration/cell_visiting_order = " << cell_visiting_order_ << std::endl;
+	min_cell_area_ = config.min_cell_area;
+	std::cout << "room_exploration/min_cell_area_ = " << min_cell_area_ << std::endl;
+	path_eps_ = config.path_eps;
+	std::cout << "room_exploration/path_eps_ = " << path_eps_ << std::endl;
+	tool_size_ = config.tool_size;
+	std::cout << "room_exploration/tool_size_ = " << tool_size_ << std::endl;
+	grid_obstacle_offset_ = config.grid_obstacle_offset;
+	std::cout << "room_exploration/grid_obstacle_offset_ = " << grid_obstacle_offset_ << std::endl;
+	max_deviation_from_track_ = config.max_deviation_from_track;
+	std::cout << "room_exploration/max_deviation_from_track_ = " << max_deviation_from_track_ << std::endl;
+	cell_visiting_order_ = config.cell_visiting_order;
+	std::cout << "room_exploration/cell_visiting_order = " << cell_visiting_order_ << std::endl;
 
 	if (revisit_areas_ == true)
 		std::cout << "Areas not seen after the initial execution of the path will be revisited." << std::endl;
@@ -277,9 +281,9 @@ void RoomExplorationServer::exploreRoom(const ipa_building_msgs::RoomExploration
 	std::vector<geometry_msgs::Pose2D> exploration_path;
 		// plan path
 		if(planning_mode_ == PLAN_FOR_FOV)
-			boustrophedon_explorer_.getExplorationPath(room_map, exploration_path, map_resolution, starting_position, map_origin, grid_spacing_in_pixel, grid_obstacle_offset_, path_eps_, cell_visiting_order_, false, fitting_circle_center_point_in_meter, min_cell_area_, max_deviation_from_track_);
+			boustrophedon_explorer_.getExplorationPath(room_map, exploration_path, map_resolution, starting_position, map_origin, grid_spacing_in_pixel, grid_obstacle_offset_, path_eps_, cell_visiting_order_, false, fitting_circle_center_point_in_meter, min_cell_area_, max_deviation_from_track_,tool_size_);
 		else
-			boustrophedon_explorer_.getExplorationPath(room_map, exploration_path, map_resolution, starting_position, map_origin, grid_spacing_in_pixel, grid_obstacle_offset_, path_eps_, cell_visiting_order_, true, zero_vector, min_cell_area_, max_deviation_from_track_);
+			boustrophedon_explorer_.getExplorationPath(room_map, exploration_path, map_resolution, starting_position, map_origin, grid_spacing_in_pixel, grid_obstacle_offset_, path_eps_, cell_visiting_order_, true, zero_vector, min_cell_area_, max_deviation_from_track_,tool_size_);
 
 	// display finally planned path
 	if (display_trajectory_ == true)

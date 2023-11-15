@@ -289,7 +289,7 @@ protected:
 	// computes the Boustrophedon path pattern for a single cell
 	void computeBoustrophedonPath(const cv::Mat& room_map, const float map_resolution, const GeneralizedPolygon& cell,
 			std::vector<cv::Point2f>& fov_middlepoint_path, cv::Point& robot_pos,
-			const int grid_spacing_as_int, const int half_grid_spacing_as_int, const double path_eps, const int max_deviation_from_track, const int grid_obstacle_offset=0);
+			const int toolsize, const int half_toolsize, const double path_eps, const int max_deviation_from_track, const int half_grid_spacing_as_int, const int grid_obstacle_offset=0);
 
 	// downsamples a given path original_path to waypoint distances of path_eps and appends the resulting path to downsampled_path
 	void downsamplePath(const std::vector<cv::Point>& original_path, std::vector<cv::Point>& downsampled_path,
@@ -312,23 +312,8 @@ public:
 	void getExplorationPath(const cv::Mat& room_map, std::vector<geometry_msgs::Pose2D>& path, const float map_resolution,
 				const cv::Point starting_position, const cv::Point2d map_origin, const double grid_spacing_in_pixel,
 				const double grid_obstacle_offset, const double path_eps, const int cell_visiting_order, const bool plan_for_footprint,
-				const Eigen::Matrix<float, 2, 1> robot_to_fov_vector, const double min_cell_area, const int max_deviation_from_track);
+				const Eigen::Matrix<float, 2, 1> robot_to_fov_vector, const double min_cell_area, const int max_deviation_from_track,const int tool_size);
 
 	enum CellVisitingOrder {OPTIMAL_TSP=1, LEFT_TO_RIGHT=2};
 };
 
-
-class BoustrophedonVariantExplorer : public BoustrophedonExplorer
-{
-protected:
-
-	// implements the selection criterion for cell merging, in this case: only large cells with different major axis are not merged.
-	void mergeCellsSelection(cv::Mat& cell_map, cv::Mat& cell_map_labels, std::map<int, boost::shared_ptr<BoustrophedonCell> >& cell_index_mapping,
-			const double min_cell_area, const int min_cell_width);
-
-public:
-	BoustrophedonVariantExplorer() {};
-	~BoustrophedonVariantExplorer() {};
-
-
-};
