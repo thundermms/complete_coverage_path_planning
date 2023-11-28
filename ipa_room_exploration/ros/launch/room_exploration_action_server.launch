@@ -6,6 +6,9 @@
 		<rosparam command="load" file="$(find ipa_room_exploration)/ros/launch/room_exploration_action_server_params.yaml"/>
 	</node>
 
+	<node ns="room_exploration" pkg="ipa_room_exploration" type="room_exploration_client" name="room_exploration_client" output="screen" >
+	</node>
+
 	<!-- ACTIVATE IF NEEDED: run cob_map_accessibility_analysis_server -->
 	<!-- include file="$(find ipa_room_exploration)/ros/launch/cob_map_accessibility_analysis.launch"/-->
 
