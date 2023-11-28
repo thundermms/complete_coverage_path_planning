@@ -215,12 +215,7 @@ void RoomExplorationServer::exploreRoom(const ipa_building_msgs::RoomExploration
 	const cv::Point starting_position((goal->starting_position.x-map_origin.x)/map_resolution, (goal->starting_position.y-map_origin.y)/map_resolution);
 	std::cout << "starting point: (" << goal->starting_position.x << ", " << goal->starting_position.y << ") m   (" << starting_position << " px)" << std::endl;
 
-	planning_mode_ = goal->planning_mode;
-	if (planning_mode_==PLAN_FOR_FOOTPRINT)
 		std::cout << "planning mode: planning coverage path with robot's footprint" <<std::endl;
-	else if (planning_mode_==PLAN_FOR_FOV)
-		std::cout << "planning mode: planning coverage path with robot's field of view" <<std::endl;
-
 	// todo: receive map data in nav_msgs::OccupancyGrid format
 	// converting the map msg in cv format
 	cv_bridge::CvImagePtr cv_ptr_obj;
@@ -254,21 +249,9 @@ void RoomExplorationServer::exploreRoom(const ipa_building_msgs::RoomExploration
 	double grid_spacing_in_meter = 0.0;		// is the square grid cell side length that fits into the circle with the robot's coverage radius or fov coverage radius
 	float fitting_circle_radius_in_meter = 0;
 	Eigen::Matrix<float, 2, 1> fitting_circle_center_point_in_meter;	// this is also considered the center of the field of view, because around this point the maximum radius incircle can be found that is still inside the fov
-	std::vector<Eigen::Matrix<float, 2, 1> > fov_corners_meter(4);
-	const double fov_resolution = 1000;		// in [cell/meter]
-	if(planning_mode_ == PLAN_FOR_FOV) // read out the given fov-vectors, if needed
-	{
-		// Get the size of one grid cell s.t. the grid can be completely covered by the field of view (fov) from all rotations around it.
-		for(int i = 0; i < 4; ++i)
-			fov_corners_meter[i] << goal->field_of_view[i].x, goal->field_of_view[i].y;
-		computeFOVCenterAndRadius(fov_corners_meter, fitting_circle_radius_in_meter, fitting_circle_center_point_in_meter, fov_resolution);
-		// get the edge length of the grid square that fits into the fitting_circle_radius
-		grid_spacing_in_meter = fitting_circle_radius_in_meter*std::sqrt(2);
-	}
-	else // if planning should be done for the footprint, read out the given coverage radius
-	{
-		grid_spacing_in_meter = goal->coverage_radius*std::sqrt(2);
-	}
+
+	grid_spacing_in_meter = goal->coverage_radius*std::sqrt(2);
+
 	// map the grid size to an int in pixel coordinates, using floor method
 	const double grid_spacing_in_pixel = grid_spacing_in_meter/map_resolution;		// is the square grid cell side length that fits into the circle with the robot's coverage radius or fov coverage radius, multiply with sqrt(2) to receive the whole working width
 	std::cout << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)" << std::endl;
@@ -280,54 +263,9 @@ void RoomExplorationServer::exploreRoom(const ipa_building_msgs::RoomExploration
 	zero_vector << 0, 0;
 	std::vector<geometry_msgs::Pose2D> exploration_path;
 		// plan path
-		if(planning_mode_ == PLAN_FOR_FOV)
-			boustrophedon_explorer_.getExplorationPath(room_map, exploration_path, map_resolution, starting_position, map_origin, grid_spacing_in_pixel, grid_obstacle_offset_, path_eps_, cell_visiting_order_, false, fitting_circle_center_point_in_meter, min_cell_area_, max_deviation_from_track_,tool_size_);
-		else
-			boustrophedon_explorer_.getExplorationPath(room_map, exploration_path, map_resolution, starting_position, map_origin, grid_spacing_in_pixel, grid_obstacle_offset_, path_eps_, cell_visiting_order_, true, zero_vector, min_cell_area_, max_deviation_from_track_,tool_size_);
+		
+		boustrophedon_explorer_.getExplorationPath(room_map, exploration_path, map_resolution, starting_position, map_origin, grid_spacing_in_pixel, grid_obstacle_offset_, path_eps_, cell_visiting_order_, true, zero_vector, min_cell_area_, max_deviation_from_track_,tool_size_);
 
-	// display finally planned path
-	if (display_trajectory_ == true)
-	{
-		std::cout << "printing path" << std::endl;
-		cv::Mat fov_path_map;
-		for(size_t step=1; step<exploration_path.size(); ++step)
-		{
-			fov_path_map = room_map.clone();
-			cv::resize(fov_path_map, fov_path_map, cv::Size(), 2, 2, cv::INTER_LINEAR);
-			if (exploration_path.size() > 0)
-#if CV_MAJOR_VERSION<=3
-				cv::circle(fov_path_map, 2*cv::Point((exploration_path[0].x-map_origin.x)/map_resolution, (exploration_path[0].y-map_origin.y)/map_resolution), 2, cv::Scalar(150), CV_FILLED);
-#else
-				cv::circle(fov_path_map, 2*cv::Point((exploration_path[0].x-map_origin.x)/map_resolution, (exploration_path[0].y-map_origin.y)/map_resolution), 2, cv::Scalar(150), cv::FILLED);
-#endif
-			for(size_t i=1; i<=step; ++i)
-			{
-				cv::Point p1((exploration_path[i-1].x-map_origin.x)/map_resolution, (exploration_path[i-1].y-map_origin.y)/map_resolution);
-				cv::Point p2((exploration_path[i].x-map_origin.x)/map_resolution, (exploration_path[i].y-map_origin.y)/map_resolution);
-#if CV_MAJOR_VERSION<=3
-				cv::circle(fov_path_map, 2*p2, 2, cv::Scalar(200), CV_FILLED);
-#else
-				cv::circle(fov_path_map, 2*p2, 2, cv::Scalar(200), cv::FILLED);
-#endif
-				cv::line(fov_path_map, 2*p1, 2*p2, cv::Scalar(150), 1);
-				cv::Point p3(p2.x+5*cos(exploration_path[i].theta), p2.y+5*sin(exploration_path[i].theta));
-				if (i==step)
-				{
-#if CV_MAJOR_VERSION<=3
-					cv::circle(fov_path_map, 2*p2, 2, cv::Scalar(80), CV_FILLED);
-#else
-					cv::circle(fov_path_map, 2*p2, 2, cv::Scalar(80), cv::FILLED);
-#endif
-					cv::line(fov_path_map, 2*p1, 2*p2, cv::Scalar(150), 1);
-					cv::line(fov_path_map, 2*p2, 2*p3, cv::Scalar(50), 1);
-				}
-			}
-//			cv::imshow("cell path", fov_path_map);
-//			cv::waitKey();
-		}
-		// cv::imshow("cell path", fov_path_map);
-		cv::waitKey();
-	}
 	
 	ROS_INFO("Room exploration planning finished.");
 
