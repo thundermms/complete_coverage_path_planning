@@ -2,7 +2,7 @@
 
 # clear
 
-docker build --load -t coverage_path_planner .
+docker build -t coverage_path_planner .
 
 docker stop coverage_path_planner
 
