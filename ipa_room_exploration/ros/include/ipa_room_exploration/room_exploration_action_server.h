@@ -82,6 +82,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <thread>
 // services and actions
 #include <ipa_building_msgs/RoomExplorationAction.h>
 #include <cob_map_accessibility_analysis/CheckPerimeterAccessibility.h>
@@ -185,7 +186,14 @@ protected:
 	// min_dist_squared is the squared minimum distance between two points on the trajectory, in [pixel] (i.e. grid cells)
 	void downsampleTrajectory(const std::vector<geometry_msgs::Pose2D>& path_uncleaned, std::vector<geometry_msgs::Pose2D>& path, const double min_dist_squared);
 
+	void preemptCallback()
+    {
+        ROS_WARN("Exploration action preempted by cancel request.");
+        // You can add any additional actions or cleanup code here
+        room_exploration_server_.setPreempted();
 
+    }
+	
 	// converter-> Pixel to meter for X coordinate
 	double convertPixelToMeterForXCoordinate(const int pixel_valued_object_x, const float map_resolution, const cv::Point2d map_origin)
 	{

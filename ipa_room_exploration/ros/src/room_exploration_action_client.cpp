@@ -109,9 +109,9 @@ private:
         std::vector<double> origin (3,0);
         priv_nh.param("origin", origin, origin);
         double robot_radius;
-        priv_nh.param("robot_radius", robot_radius, 0.3);
+        priv_nh.param("robot_radius", robot_radius, 0.2);
         double coverage_radius;
-        priv_nh.param("coverage_radius", coverage_radius, 1.0);
+        priv_nh.param("coverage_radius", coverage_radius, 0.2);
         
         // Create a CvImage to hold the received map
         cv_bridge::CvImagePtr cv_image_ptr;
@@ -127,13 +127,13 @@ private:
         
 
         while(!isDataReady)
-        {   ROS_INFO("stuck");
+        {   
             ros::spinOnce();
         }
         isDataReady = false;
         DynamicReconfigureClient drc_exp(nh, "room_exploration_server/set_parameters", "room_exploration_server/parameter_updates");
-        drc_exp.setConfig("path_eps", 200.0);
-        drc_exp.setConfig("map_correction_closing_neighborhood_size", 4);
+        // drc_exp.setConfig("path_eps", 25.0);
+        // drc_exp.setConfig("map_correction_closing_neighborhood_size", 7);
         std::vector<geometry_msgs::Point32> fov_points(4);
 
         int planning_mode = 1;

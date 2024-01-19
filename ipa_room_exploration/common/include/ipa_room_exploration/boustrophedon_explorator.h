@@ -67,6 +67,7 @@
 #include <set>
 #include <cmath>
 #include <string>
+#include <thread>
 
 #include <Eigen/Dense>
 
@@ -303,6 +304,9 @@ protected:
 	void printCells(std::map<int, boost::shared_ptr<BoustrophedonCell> >& cell_index_mapping);
 
 public:
+	bool isPreemptRequested;
+	std::thread preemptCheckThread;
+
 	// constructor
 	BoustrophedonExplorer();
 

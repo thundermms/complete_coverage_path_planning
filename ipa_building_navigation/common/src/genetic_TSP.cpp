@@ -9,6 +9,7 @@ GeneticTSPSolver::GeneticTSPSolver(int min_number_of_gens, int const_generations
 {
 	min_number_of_generations_ = min_number_of_gens;
 	const_generations_number_ = const_generations;
+	isPreemptRequested_ = false;
 }
 
 void GeneticTSPSolver::distance_matrix_thread(DistanceMatrix& distance_matrix_computation, cv::Mat& distance_matrix,
@@ -272,6 +273,12 @@ std::vector<int> GeneticTSPSolver::solveGeneticTSP(const cv::Mat& original_map, 
 	bool finished = false;
 	while (finished==false)
 	{
+		if(isPreemptRequested_)
+		{
+			distance_matrix_computation.abortComputation();
+			ROS_INFO("I was called at TSP");
+		}
+			
 		if (abort_computation_==true)
 			distance_matrix_computation.abortComputation();
 		finished = t.try_join_for(boost::chrono::milliseconds(10));

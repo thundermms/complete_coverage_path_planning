@@ -1,5 +1,4 @@
 #include <ipa_room_exploration/boustrophedon_explorator.h>
-
 // #define DEBUG_VISUALIZATION
 
 // Constructor
@@ -84,10 +83,16 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat& room_map, std::vec
 	// cv::waitKey();
 
 	int start_cell_index = 0;
+	bool check_for_preempt = true;
 	for(std::vector<GeneralizedPolygon>::iterator cell=cell_polygons.begin(); cell!=cell_polygons.end(); ++cell)
-		if(cv::pointPolygonTest(cell->getVertices(), rotated_starting_point, false) >= 0)
+		{	if(isPreemptRequested == true)
+				{
+					ROS_INFO("Preempt called");
+					return;
+				}
+			if(cv::pointPolygonTest(cell->getVertices(), rotated_starting_point, false) >= 0)
 			start_cell_index = cell - cell_polygons.begin();
-
+		}
 	// determine the visiting order of the cells
 	std::vector<int> optimal_order;
 	if (cell_visiting_order == OPTIMAL_TSP)
@@ -96,8 +101,32 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat& room_map, std::vec
 	//	ConcordeTSPSolver tsp_solver;
 	//	std::vector<int> optimal_order = tsp_solver.solveConcordeTSP(rotated_room_map, polygon_centers, 0.25, 0.0, map_resolution, start_cell_index, 0);
 		GeneticTSPSolver tsp_solver;
+		// Create a thread to periodically check for preemption
+		std::thread preemptCheckThread([&]() {
+			
+			while (check_for_preempt)
+			{	
+				if (isPreemptRequested == true)
+				{
+					ROS_INFO("Preempt requested during path planning. Stopping room exploration. at line 111");
+					tsp_solver.preemptrequested(true);
+					check_for_preempt = false;
+					return;
+				}
+				// Adjust the sleep duration based on your application's requirements
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			}
+		});
 		optimal_order = tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 0.25, 0.0, map_resolution, start_cell_index, 0);
-		if (optimal_order.size()!=polygon_centers.size())
+		check_for_preempt = false;
+		preemptCheckThread.join();
+		if (optimal_order.size()==0)
+		{
+			std::cout<<"Path planning cancelled no TSP";
+			return;
+
+		}
+		else if (optimal_order.size()!=polygon_centers.size())
 		{
 			std::cout << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================" << std::endl;
 			optimal_order = tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 1.0, 0.0, map_resolution, start_cell_index, 0);
@@ -117,14 +146,19 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat& room_map, std::vec
 		std::cout << "Error: BoustrophedonExplorer::getExplorationPath: The specified cell_visiting_order=" << cell_visiting_order << " is invalid." << std::endl;
 		return;
 	}
-
+	
+	
 	// go trough the cells [in optimal visiting order] and determine the boustrophedon paths
 	ROS_INFO("Starting to get the paths for each cell, number of cells: %d", (int)cell_polygons.size());
 	std::cout << "Boustrophedon grid_spacing_as_int=" << toolsize << std::endl;
 	cv::Point robot_pos = rotated_starting_point;	// point that keeps track of the last point after the boustrophedon path in each cell
 	std::vector<cv::Point2f> fov_middlepoint_path;	// this is the trajectory of centers of the robot footprint or the field of view
 	for(size_t cell=0; cell<cell_polygons.size(); ++cell)
-	{
+	{	if(isPreemptRequested == true)
+		{
+			ROS_INFO("Preempt called");
+			return;
+		}
 		computeBoustrophedonPath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]], fov_middlepoint_path,
 				robot_pos, toolsize, half_toolsize, path_eps, max_deviation_from_track, half_grid_spacing_as_int, grid_obstacle_offset/map_resolution);
 	}
@@ -743,9 +777,18 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat& room_map, co
 
 	// compute the basic Boustrophedon grid lines
 	BoustrophedonGrid grid_lines;
+	if(isPreemptRequested == true)
+	{
+		ROS_INFO("Preempt called");
+		return;
+	}
 	GridGenerator::generateBoustrophedonGrid(rotated_cell_map, rotated_inflated_cell_map, -1, grid_lines, cv::Vec4i(-1, -1, -1, -1), //cv::Vec4i(min_x, max_x, min_y, max_y),
 			toolsize, half_toolsize, toolsize, max_deviation_from_track);
-
+	if(isPreemptRequested == true)
+	{
+		ROS_INFO("Preempt called");
+		return;
+	}
 #ifdef DEBUG_VISUALIZATION
 	cv::Mat rotated_cell_map_disp = rotated_cell_map.clone();
 	for (size_t i=0; i<grid_lines.size(); ++i)
@@ -822,6 +865,11 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat& room_map, co
 	{
 		for(BoustrophedonGrid::iterator line=grid_lines.begin(); line!=grid_lines.end(); ++line)
 		{
+			if(isPreemptRequested == true)
+			{
+				ROS_INFO("Preempt called");
+				return;
+			}
 			if(start == true) // at the beginning of path planning start at first horizontal line --> no vertical points between lines
 			{
 				if(start_from_left == true)
@@ -869,6 +917,11 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat& room_map, co
 	{
 		for(BoustrophedonGrid::reverse_iterator line=grid_lines.rbegin(); line!=grid_lines.rend(); ++line)
 		{
+			if(isPreemptRequested == true)
+			{
+				ROS_INFO("Preempt called");
+				return;
+			}
 			if(start == true) // at the beginning of path planning start at first horizontal line --> no vertical points between lines
 			{
 				if(start_from_left == true)

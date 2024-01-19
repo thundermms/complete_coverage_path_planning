@@ -60,11 +60,16 @@ protected:
 	//indicates the amount of generations for which the path shouldn't have changed in order to stop the
 	//optimization
 	int const_generations_number_;
+	bool isPreemptRequested_ = false;
+
 
 public:
 	//constructor
 	GeneticTSPSolver(int min_number_of_gens=2300, int const_generations=100);
-
+	void preemptrequested(bool newStatus)
+	{
+		isPreemptRequested_ = newStatus;
+	}
 	void abortComputation();
 
 	//Solving-algorithms for the given TSP. It returns a vector of int, which is the order from this solution. The int shows
